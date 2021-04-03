@@ -1,0 +1,30 @@
+service: aspace-resource-migrator
+frameworkVersion: '2'
+variablesResolutionMode: 20210326
+
+custom:
+  migrator_config: ./config/example.yml
+  rubyPackage:
+    dockerImage: lambci/lambda:build-ruby2.7
+
+provider:
+  name: aws
+  region: us-west-2
+  runtime: ruby2.7
+  lambdaHashingVersion: 20201221
+  memorySize: 128
+  timeout: 900
+
+functions:
+  migrator:
+    name: aspace-resource-migrator
+    handler: handler.migrator
+    events: ${file(${env:MIGRATOR_CONFIG, self:custom.migrator_config}):migrator}
+
+package:
+  include:
+    - handler.rb
+
+# https://www.serverless.com/plugins/serverless-ruby-package
+plugins:
+  - serverless-ruby-package

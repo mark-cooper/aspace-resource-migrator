@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "serverless-ruby-package": "^1.4.0"
+  }
+}

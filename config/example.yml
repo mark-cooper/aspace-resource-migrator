@@ -1,0 +1,15 @@
+migrator:
+  - schedule:
+      # every day at 6am UTC
+      rate: cron(0 6 * * ? *)
+      enabled: true
+      input:
+        source_url: http://test.archivesspace.org/staff/api
+        source_repo_id: 2
+        source_username: admin
+        source_password: admin
+        destination_url: http://sandbox.archivesspace.org/api
+        destination_repo_id: 2
+        destination_username: admin
+        destination_password: admin
+        recent_only: true

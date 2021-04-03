@@ -1,0 +1,7 @@
+.serverless/
+config/deployment.yml
+config/dev.yml
+node_modules/
+test/deployment.json
+test/dev.json
+vendor/
