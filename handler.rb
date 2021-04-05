@@ -9,8 +9,8 @@ require 'uri'
 # - Verify source and destination repositories exist
 # - Retrieve modified record ids from source (or all if recent_only: false)
 # - Retrieve EAD XML from source for each id
-# - Check records: if destination has record delete it (we cannot overlay)
 # - Convert EAD XML to json in destination (jsonmodel-from-format)
+# - Check records: if destination has record delete it (we cannot overlay)
 # - POST json to destination batch import endpoint
 
 # TODO: notifications for failures
@@ -33,10 +33,10 @@ def migrator(event:, context:)
     record = retrieve_resource_description(source, uri_to_id(resource['uri']))
     next unless record
 
-    remove_existing_record(destination, four_part_id)
     json = convert_record(destination, record, four_part_id)
-    fatal_error '[destination] jsonmodel plugin is not installed' if JSON.parse(json).key? 'error'
+    next unless json
 
+    remove_existing_record(destination, four_part_id)
     import_record(destination, json, four_part_id)
   end
 
@@ -49,9 +49,19 @@ def convert_record(destination, record, four_part_id)
   base_repo = destination.config.base_repo
   destination.config.base_repo = nil
   $logger.info "[destination] converting resource #{four_part_id} to importable json"
-  destination.post('plugins/jsonmodel_from_format/resource/ead', record).body
+  response = destination.post('plugins/jsonmodel_from_format/resource/ead', record)
+  unless response.result.success?
+    if response.parsed['error'] == 'Sinatra::NotFound'
+      raise '[destination] jsonmodel plugin is not installed'
+    else
+      raise "[destination] error converting resource #{four_part_id} to json"
+    end
+  end
+
+  response.body
 rescue StandardError => e
   $logger.error e.message
+  nil
 ensure
   destination.config.base_repo = base_repo
 end
@@ -66,6 +76,7 @@ def import_record(destination, record, four_part_id)
   destination.post('batch_imports', record)
 rescue StandardError => e
   $logger.error e.message
+  nil
 end
 
 def modified_since(recent_only)
@@ -80,15 +91,18 @@ def remove_existing_record(destination, four_part_id)
   end
 rescue StandardError => e
   $logger.error e.message
+  nil
 end
 
 def resolve_id(resource)
-  JSON.generate [
-    resource.fetch('id_0'),
-    resource.fetch('id_1', nil),
-    resource.fetch('id_2', nil),
-    resource.fetch('id_3', nil)
-  ]
+  # JSON.generate [
+  #   resource.fetch('id_0'),
+  #   resource.fetch('id_1', nil),
+  #   resource.fetch('id_2', nil),
+  #   resource.fetch('id_3', nil)
+  # ]
+  # Note: the default importer smushes everything into id_0
+  JSON.generate([(0..3).map { |i| resource.fetch("id_#{i}", nil) }.compact.join('.')])
 end
 
 def retrieve_resource_description(source, id)
@@ -106,6 +120,7 @@ def retrieve_resource_description(source, id)
   Nokogiri::XML(response.body).to_xml
 rescue StandardError => e
   $logger.error e.message
+  nil
 end
 
 def setup_client(role, event)
