@@ -44,20 +44,21 @@ Create the config file: `cp test/example.json test/dev.json` and update it:
 
 ```json
 {
-  "source_url": "http://test.archivesspace.org/staff/api",
+  "source_url": "https://some.archivesspace.example/api",
   "source_repo_id": 2,
   "source_username": "admin",
-  "source_password": "admin",
+  "source_password": "password!",
   "destination_url": "http://localhost:4567",
   "destination_repo_id": 101,
   "destination_username": "admin",
   "destination_password": "admin",
-  "recent_only": true
+  "recent_only": true,
+  "id_generator": "smushed"
 }
 ```
 
 Change the values to match your requirements. The sample configuration pulls resource records
-from the test server to a local development instance of ArchivesSpace.
+from a remote server to a local development instance of ArchivesSpace.
 
 To run it:
 
@@ -93,7 +94,9 @@ AWS_PROFILE=archivesspace sls remove
 
 ## ArchivesSpace permissions
 
-It is highly recommended that the source account only be given read access to resources.
+It is highly recommended that the source account only be given read access to records:
+
+- `view_repository`: view the records in this repository
 
 ## License
 
