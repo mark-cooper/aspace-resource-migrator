@@ -13,3 +13,4 @@ migrator:
         destination_username: admin
         destination_password: admin
         recent_only: true
+        id_generator: smushed

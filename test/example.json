@@ -7,5 +7,6 @@
   "destination_repo_id": 2,
   "destination_username": "admin",
   "destination_password": "admin",
-  "recent_only": true
+  "recent_only": true,
+  "id_generator": "smushed"
 }
