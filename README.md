@@ -69,6 +69,17 @@ bundle exec sls invoke local -f migrator -p test/dev.json
 With suitable configuration this is also a practical way of running a complete repository
 migration without the timeout restrictions of Lambda.
 
+### Targeting a subset of records
+
+To target a set of records you can specify a list of uris in the config:
+
+```json
+{
+  // other config
+  "source_target_record_uris": ["/repositories/3/resources/22"]
+}
+```
+
 ## Deployment configuration
 
 Create the deployment file: `cp config/example.yml config/deployment.yml`:

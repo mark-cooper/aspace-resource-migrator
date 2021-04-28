@@ -34,6 +34,7 @@ ID_GENERATORS = {
 def migrator(event:, context:)
   source       = setup_client('source', event)
   destination  = setup_client('destination', event)
+  target_uris  = event.fetch('source_target_record_uris', [])
   since        = modified_since(event['recent_only']).to_s
   id_generator = event.fetch('id_generator', 'smushed')
 
@@ -48,6 +49,7 @@ def migrator(event:, context:)
     title      = resource['title']
     uri        = resource['uri']
     identifier = ID_GENERATORS.fetch(id_generator).call(resource)
+    next if target_uris.any? && !target_uris.include?(resource['uri'])
 
     $logger.info "[source] using resource #{identifier} (#{title}): #{uri}"
     record = retrieve_resource_description(source, uri_to_id(uri))
