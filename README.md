@@ -1,5 +1,8 @@
 # ASpace Resource Migrator
 
+[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](http://opensource.org/licenses/MIT)
+
 Migrates resource records from one ArchivesSpace repository to another.
 
 ## Use cases
@@ -85,8 +88,27 @@ To target a set of records you can specify a list of uris in the config:
 Create the deployment file: `cp config/example.yml config/deployment.yml`:
 
 ```yml
----
+migrator:
+  - schedule:
+      # every day at 6am UTC
+      rate: cron(0 6 * * ? *)
+      enabled: true
+      input:
+        source_url: http://source.archivesspace.org/staff/api
+        source_repo_id: 2
+        source_username: ${ssm(raw):source_username}
+        source_password: ${ssm(raw):source_password}
+        destination_url: http://destination.archivesspace.org/api
+        destination_repo_id: 2
+        destination_username: ${ssm(raw):destination_username}
+        destination_password: ${ssm(raw):destination_password}
+        recent_only: true
+        id_generator: smushed
 ```
+
+The key differences are the `schedule` (when the function runs) and use of `ssm` to
+set the username and passwords (a strong recommendation). For this to work you need to
+create the SSM SecureString params in AWS.
 
 For locally triggerring the remote function create an equivalent `test/deployment.json`
 using `test/example.json` as a starting point.
