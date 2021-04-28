@@ -2,4 +2,4 @@
 
 source 'https://rubygems.org'
 
-gem 'archivesspace-client', git: 'https://github.com/lyrasis/archivesspace-client'
+gem 'archivesspace-client'
