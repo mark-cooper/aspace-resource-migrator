@@ -4,4 +4,5 @@ config/dev.yml
 node_modules/
 test/deployment.json
 test/dev.json
+test/pui_*.json
 vendor/
