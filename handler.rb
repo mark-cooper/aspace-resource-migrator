@@ -7,6 +7,7 @@ require 'logger'
 # - Setup connections (source and dest)
 # - Verify source and destination repositories exist
 # - Retrieve modified record ids from source (or all if recent_only: false)
+# - Skip processing if destination has record and cfg does not allow updates
 # - Retrieve EAD XML from source for each id
 # - Convert EAD XML to json in destination (jsonmodel-from-format)
 # - Check records: if destination has record delete it (we cannot overlay)
@@ -31,17 +32,19 @@ ID_GENERATORS = {
   }
 }.freeze
 
-def migrator(event:, context:)
-  source       = setup_client('source', event)
-  destination  = setup_client('destination', event)
-  target_uris  = event.fetch('source_target_record_uris', [])
-  since        = modified_since(event['recent_only']).to_s
-  id_generator = event.fetch('id_generator', 'smushed')
+# TODO: re-org this (need to handle enum misses in general)
+TRANSFORMERS = [
+  ->(record) { record.gsub(/level="other level"/, 'level="otherlevel"') }
+]
 
-  $logger.info "using source: #{source.config.base_uri}"
-  $logger.info "using destination: #{destination.config.base_uri}"
-  $logger.info "using modified since: #{since}"
-  $logger.info "using id generator: #{id_generator}"
+def migrator(event:, context:)
+  source        = setup_client('source', event)
+  destination   = setup_client('destination', event)
+  target_uris   = event.fetch('source_target_record_uris', [])
+  since         = modified_since(event['recent_only']).to_s
+  id_generator  = event.fetch('id_generator', 'smushed')
+  skip_existing = event.fetch('destination_skip_existing', false)
+  log_setup(source, destination, target_uris, since, id_generator, skip_existing)
 
   source.resources(query: { modified_since: since }).each do |resource|
     next unless resource['publish']
@@ -49,16 +52,19 @@ def migrator(event:, context:)
     title      = resource['title']
     uri        = resource['uri']
     identifier = ID_GENERATORS.fetch(id_generator).call(resource)
+    destination_uri = find_uri(destination, identifier)
     next if target_uris.any? && !target_uris.include?(resource['uri'])
+    next if destination_uri && skip_existing
 
     $logger.info "[source] using resource #{identifier} (#{title}): #{uri}"
     record = retrieve_resource_description(source, uri_to_id(uri))
     next unless record
 
+    TRANSFORMERS.each { |t| record = t.call(record) }
     json = convert_record(destination, record, identifier)
     next unless json
 
-    remove_existing_record(destination, identifier)
+    remove_existing_record(destination, destination_uri) if destination_uri
     import_record(destination, json, identifier)
   end
 
@@ -93,6 +99,14 @@ def fatal_error(message)
   raise message
 end
 
+def find_uri(destination, identifier)
+  response = destination.get('find_by_id/resources', { query: { 'identifier[]': identifier } })
+  response.parsed.fetch('resources').map { |r| r['ref'] }.first
+rescue StandardError => e
+  $logger.error e.message
+  nil
+end
+
 def import_record(destination, record, identifier)
   $logger.info "[destination] importing resource #{identifier}: #{destination.config.base_uri}"
   destination.post('batch_imports', record)
@@ -101,16 +115,22 @@ rescue StandardError => e
   nil
 end
 
+def log_setup(source, destination, target_uris, since, id_generator, skip_existing)
+  $logger.info "using source: #{source.config.base_uri}"
+  $logger.info "using destination: #{destination.config.base_uri}"
+  $logger.info "using targets: #{target_uris}" if target_uris.any?
+  $logger.info "using modified since: #{since}"
+  $logger.info "using id generator: #{id_generator}"
+  $logger.info "using skip existing: #{skip_existing}"
+end
+
 def modified_since(recent_only)
   recent_only ? (DateTime.now - 1.0).to_time.utc.to_i : 0
 end
 
-def remove_existing_record(destination, identifier)
-  response = destination.get('find_by_id/resources', { query: { 'identifier[]': identifier } })
-  response.parsed['resources'].each do |ref|
-    $logger.info "[destination] deleting resource #{identifier}: #{ref['ref']}"
-    destination.delete File.join('resources', uri_to_id(ref['ref']))
-  end
+def remove_existing_record(destination, uri)
+  $logger.info "[destination] deleting resource #{identifier}: #{uri}"
+  destination.delete File.join('resources', uri_to_id(uri))
 rescue StandardError => e
   $logger.error e.message
   nil

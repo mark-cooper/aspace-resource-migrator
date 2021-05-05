@@ -83,6 +83,19 @@ To target a set of records you can specify a list of uris in the config:
 }
 ```
 
+### Prevent record updates
+
+For a migration it can be convenient to skip records that have already been
+transferred to the destination in order to reprocess records that failed to
+transfer while leaving successfully transferred records untouched:
+
+```json
+{
+  // other config
+  "destination_skip_existing": true,
+}
+```
+
 ## Deployment configuration
 
 Create the deployment file: `cp config/example.yml config/deployment.yml`:
