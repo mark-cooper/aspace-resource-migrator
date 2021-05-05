@@ -76,7 +76,7 @@ def convert_record(destination, record, identifier)
     if response.parsed['error'] == 'Sinatra::NotFound'
       raise '[destination] jsonmodel plugin is not installed'
     else
-      raise "[destination] error converting resource #{identifier} to json"
+      raise "[destination] error converting resource #{identifier} to json: #{response.body}"
     end
   end
 
