@@ -99,8 +99,12 @@ def fatal_error(message)
   raise message
 end
 
-def find_uri(destination, identifier)
-  response = destination.get('find_by_id/resources', { query: { 'identifier[]': identifier } })
+def find_repository(client, repository)
+  client.repositories.find { |r| r['repo_code'] == repository }
+end
+
+def find_uri(client, identifier)
+  response = client.get('find_by_id/resources', { query: { 'identifier[]': identifier } })
   response.parsed.fetch('resources').map { |r| r['ref'] }.first
 rescue StandardError => e
   $logger.error e.message
@@ -116,8 +120,8 @@ rescue StandardError => e
 end
 
 def log_setup(source, destination, target_uris, since, id_generator, skip_existing)
-  $logger.info "using source: #{source.config.base_uri}"
-  $logger.info "using destination: #{destination.config.base_uri}"
+  $logger.info "using source: #{source.config.base_uri} [#{source.config.base_repo}]"
+  $logger.info "using destination: #{destination.config.base_uri} [#{destination.config.base_repo}]"
   $logger.info "using targets: #{target_uris}" if target_uris.any?
   $logger.info "using modified since: #{since}"
   $logger.info "using id generator: #{id_generator}"
@@ -155,11 +159,12 @@ rescue StandardError => e
 end
 
 def setup_client(role, event)
+  repo_code = event["#{role}_repo_code"].strip
   client = ArchivesSpace::Client.new(setup(role, event)).login
-  repository = File.join('repositories', event["#{role}_repo_id"].to_s)
-  fatal_error "[#{role}] invalid repository: #{repository}" unless verify_repository(client, repository)
+  repository = find_repository(client, repo_code)
+  fatal_error "[#{role}] invalid repository: #{repo_code}" unless repository
 
-  client.config.base_repo = repository
+  client.config.base_repo = repository['uri']
   client
 end
 
@@ -178,8 +183,4 @@ end
 
 def uri_to_id(uri)
   uri.split('/').last
-end
-
-def verify_repository(client, repository)
-  client.get(repository).result.success?
 end

@@ -48,11 +48,11 @@ Create the config file: `cp test/example.json test/dev.json` and update it:
 ```json
 {
   "source_url": "https://some.archivesspace.example/api",
-  "source_repo_id": 2,
+  "source_repo_code": "source_repo_code",
   "source_username": "admin",
   "source_password": "password!",
   "destination_url": "http://localhost:4567",
-  "destination_repo_id": 101,
+  "destination_repo_code": "dest_repo_code",
   "destination_username": "admin",
   "destination_password": "admin",
   "recent_only": true,
@@ -60,8 +60,8 @@ Create the config file: `cp test/example.json test/dev.json` and update it:
 }
 ```
 
-Change the values to match your requirements. The sample configuration pulls resource records
-from a remote server to a local development instance of ArchivesSpace.
+Change the values to match your requirements. The sample configuration pulls resource
+records from a remote server to a local development instance of ArchivesSpace.
 
 To run it:
 
@@ -108,11 +108,11 @@ migrator:
       enabled: true
       input:
         source_url: http://source.archivesspace.org/staff/api
-        source_repo_id: 2
+        source_repo_code: source_repo_code
         source_username: ${ssm(raw):source_username}
         source_password: ${ssm(raw):source_password}
         destination_url: http://destination.archivesspace.org/api
-        destination_repo_id: 2
+        destination_repo_code: destination_repo_code
         destination_username: ${ssm(raw):destination_username}
         destination_password: ${ssm(raw):destination_password}
         recent_only: true
