@@ -33,9 +33,14 @@ ID_GENERATORS = {
 }.freeze
 
 # TODO: re-org this (need to handle enum misses in general)
-TRANSFORMERS = [
-  ->(record) { record.gsub(/level="other level"/, 'level="otherlevel"') }
-]
+TRANSFORMERS = {
+  ead: [
+    ->(record) { record.gsub(/level="other level"/, 'level="otherlevel"') }
+  ],
+  json: [
+    ->(record) { record.gsub(/"publish":false/, '"publish":true') }
+  ]
+}
 
 def migrator(event:, context:)
   source        = setup_client('source', event)
@@ -60,10 +65,11 @@ def migrator(event:, context:)
     record = retrieve_resource_description(source, uri_to_id(uri))
     next unless record
 
-    TRANSFORMERS.each { |t| record = t.call(record) }
+    TRANSFORMERS[:ead].each { |t| record = t.call(record) }
     json = convert_record(destination, record, identifier)
     next unless json
 
+    TRANSFORMERS[:json].each { |t| json = t.call(json) }
     remove_existing_record(destination, destination_uri) if destination_uri
     import_record(destination, json, identifier)
   end
