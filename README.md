@@ -146,7 +146,7 @@ It is highly recommended that the source account only be given read access to re
 
 ## TODOs
 
-Refactor to `lib` or `gem`:
+1. Refactor to `lib` or `gem`:
 
 ```ruby
 source = ArchivesSpace::ResourceMigrator::Source.new(
@@ -157,6 +157,10 @@ destination = ArchivesSpace::ResourceMigrator::Destination.new(
 )
 ArchivesSpace::ResourceMigrator.new(source, destination).run
 ```
+
+2. Add `sweeper` function. This function pulls all resource identifiers
+from the source and destination and deletes from destination any records
+that do not exist in source (i.e. were deleted post import).
 
 ## License
 
