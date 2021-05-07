@@ -144,6 +144,20 @@ It is highly recommended that the source account only be given read access to re
 
 - `view_repository`: view the records in this repository
 
+## TODOs
+
+Refactor to `lib` or `gem`:
+
+```ruby
+source = ArchivesSpace::ResourceMigrator::Source.new(
+  ArchivesSpace::ResourceMigrator::Source.configure(event)
+)
+destination = ArchivesSpace::ResourceMigrator::Destination.new(
+  ArchivesSpace::ResourceMigrator::Destination.configure(event)
+)
+ArchivesSpace::ResourceMigrator.new(source, destination).run
+```
+
 ## License
 
 Open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
