@@ -83,7 +83,7 @@ def convert_record(destination, record, identifier)
   base_repo = destination.config.base_repo
   destination.config.base_repo = nil
   $logger.info "[destination] converting resource #{identifier} to importable json"
-  response = destination.post('plugins/jsonmodel_from_format/resource/ead', record)
+  response = destination.post("plugins/jsonmodel_from_format/#{base_repo}/resource/ead", record)
   unless response.result.success?
     if response.parsed['error'] == 'Sinatra::NotFound'
       raise '[destination] jsonmodel plugin is not installed'

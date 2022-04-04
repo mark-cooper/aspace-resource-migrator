@@ -36,6 +36,7 @@ transfer of data is required the function can be run locally without the timeout
 Install the pre-reqs then download this repo and run:
 
 ```bash
+npm install -g serverless
 npm install
 bundle install --standalone
 sls package
@@ -95,6 +96,34 @@ transfer while leaving successfully transferred records untouched:
   "destination_skip_existing": true,
 }
 ```
+
+## Running locally with ASpace source
+
+Clone ASpace locally and download the `aspace-jsonmodel-from-format` plugin:
+
+```bash
+cd ~/path/to/archivesspace
+cd plugins
+git clone https://github.com/lyrasis/aspace-jsonmodel-from-format.git
+cd ..
+touch common/config/config.rb
+echo "AppConfig[:plugins] << 'aspace-jsonmodel-from-format'" >> common/config/config.rb
+echo "AppConfig[:agent_records_default_publish] = false" >> common/config/config.rb
+```
+
+Follow the instructions to [run ArchivesSpace from source](https://github.com/archivesspace/tech-docs/blob/master/development/dev.md).
+
+Verify you can login: `http://localhost:3000 admin admin`
+
+As the destination is empty create a published repo: `test`.
+
+Run the migrator:
+
+```bash
+bundle exec sls invoke local -f migrator -p test/src.json
+```
+
+The `test` repo in the destination should now have records.
 
 ## Deployment configuration
 
