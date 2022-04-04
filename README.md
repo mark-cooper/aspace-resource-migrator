@@ -31,70 +31,15 @@ transfer of data is required the function can be run locally without the timeout
 ## Pre-reqs
 
 - [Ruby](#) & [Bundler](#)
-- [Serverless framework](#)
+- [NVM](#) / Node / NPM
+- [Serverless framework](#) `npm install -g serverless`
 
 Install the pre-reqs then download this repo and run:
 
 ```bash
-npm install -g serverless
 npm install
 bundle install --standalone
 sls package
-```
-
-## Running locally
-
-Create the config file: `cp test/example.json test/dev.json` and update it:
-
-```json
-{
-  "source_url": "https://some.archivesspace.example/api",
-  "source_repo_code": "source_repo_code",
-  "source_username": "admin",
-  "source_password": "password!",
-  "destination_url": "http://localhost:4567",
-  "destination_repo_code": "dest_repo_code",
-  "destination_username": "admin",
-  "destination_password": "admin",
-  "recent_only": true,
-  "id_generator": "smushed"
-}
-```
-
-Change the values to match your requirements. The sample configuration pulls resource
-records from a remote server to a local development instance of ArchivesSpace.
-
-To run it:
-
-```bash
-bundle exec sls invoke local -f migrator -p test/dev.json
-```
-
-With suitable configuration this is also a practical way of running a complete repository
-migration without the timeout restrictions of Lambda.
-
-### Targeting a subset of records
-
-To target a set of records you can specify a list of uris in the config:
-
-```json
-{
-  // other config
-  "source_target_record_uris": ["/repositories/3/resources/22"]
-}
-```
-
-### Prevent record updates
-
-For a migration it can be convenient to skip records that have already been
-transferred to the destination in order to reprocess records that failed to
-transfer while leaving successfully transferred records untouched:
-
-```json
-{
-  // other config
-  "destination_skip_existing": true,
-}
 ```
 
 ## Running locally with ASpace source
@@ -124,6 +69,30 @@ bundle exec sls invoke local -f migrator -p test/src.json
 ```
 
 The `test` repo in the destination should now have records.
+
+### Targeting a subset of records
+
+To target a set of records you can specify a list of uris in the config:
+
+```json
+{
+  // other config
+  "source_target_record_uris": ["/repositories/3/resources/22"]
+}
+```
+
+### Prevent record updates
+
+For a migration it can be convenient to skip records that have already been
+transferred to the destination in order to reprocess records that failed to
+transfer while leaving successfully transferred records untouched:
+
+```json
+{
+  // other config
+  "destination_skip_existing": true,
+}
+```
 
 ## Deployment configuration
 
