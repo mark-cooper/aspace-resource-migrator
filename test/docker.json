@@ -1,0 +1,13 @@
+{
+  "source_url": "https://test.archivesspace.org/staff/api",
+  "source_repo_code": "test",
+  "source_username": "admin",
+  "source_password": "admin",
+  "destination_url": "http://localhost:8089",
+  "destination_repo_code": "test",
+  "destination_username": "admin",
+  "destination_password": "admin",
+  "destination_skip_existing": true,
+  "recent_only": false,
+  "id_generator": "smushed"
+}

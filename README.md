@@ -42,6 +42,27 @@ bundle install --standalone
 sls package
 ```
 
+## Running locally with Docker containers
+
+```bash
+docker-compose up --detach
+docker logs -f archivesspace
+```
+
+After a minute or two verify you can login: `http://localhost:8080 admin admin`
+
+_Note: the ASpace instance will be FALSC branded._
+
+As the destination is empty create a published repo: `test`.
+
+Run the migrator:
+
+```bash
+bundle exec sls invoke local -f migrator -p test/docker.json
+```
+
+The `test` repo in the destination should now have records.
+
 ## Running locally with ASpace source
 
 Clone ASpace locally and download the `aspace-jsonmodel-from-format` plugin:
