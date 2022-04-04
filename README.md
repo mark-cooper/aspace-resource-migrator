@@ -158,7 +158,10 @@ using `test/example.json` as a starting point.
 ## Deploying to AWS Lambda
 
 ```bash
+# deploy everything
 AWS_PROFILE=archivesspace MIGRATOR_CONFIG=./config/deployment.yml sls deploy
+# deploy function only
+AWS_PROFILE=archivesspace sls deploy function -f migrator
 # to trigger it from your local machine:
 AWS_PROFILE=archivesspace sls invoke -f migrator -p test/deployment.json
 # view the logs:
