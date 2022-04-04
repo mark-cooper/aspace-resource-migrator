@@ -1,5 +1,5 @@
 service: aspace-resource-migrator
-frameworkVersion: '2'
+frameworkVersion: '3'
 variablesResolutionMode: 20210326
 
 custom:
