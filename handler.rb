@@ -70,7 +70,7 @@ def migrator(event:, context:)
     next unless json
 
     TRANSFORMERS[:json].each { |t| json = t.call(json) }
-    remove_existing_record(destination, destination_uri) if destination_uri
+    remove_existing_record(destination, destination_uri, identifier) if destination_uri
     import_record(destination, json, identifier)
   end
 
@@ -94,7 +94,7 @@ def convert_record(destination, record, identifier)
 
   response.body
 rescue StandardError => e
-  $logger.error e.message
+  $logger.error "#{e.message}\n#{e.backtrace}"
   nil
 ensure
   destination.config.base_repo = base_repo
@@ -113,7 +113,7 @@ def find_uri(client, identifier)
   response = client.get('find_by_id/resources', { query: { 'identifier[]': identifier } })
   response.parsed.fetch('resources').map { |r| r['ref'] }.first
 rescue StandardError => e
-  $logger.error e.message
+  $logger.error "#{e.message}\n#{e.backtrace}"
   nil
 end
 
@@ -121,7 +121,7 @@ def import_record(destination, record, identifier)
   $logger.info "[destination] importing resource #{identifier}: #{destination.config.base_uri}"
   destination.post('batch_imports', record)
 rescue StandardError => e
-  $logger.error e.message
+  $logger.error "#{e.message}\n#{e.backtrace}"
   nil
 end
 
@@ -138,11 +138,11 @@ def modified_since(recent_only)
   recent_only ? (DateTime.now - 1.0).to_time.utc.to_i : 0
 end
 
-def remove_existing_record(destination, uri)
+def remove_existing_record(destination, uri, identifier)
   $logger.info "[destination] deleting resource #{identifier}: #{uri}"
   destination.delete File.join('resources', uri_to_id(uri))
 rescue StandardError => e
-  $logger.error e.message
+  $logger.error "#{e.message}\n#{e.backtrace}"
   nil
 end
 
@@ -160,7 +160,7 @@ def retrieve_resource_description(source, id)
   )
   Nokogiri::XML(response.body).to_xml
 rescue StandardError => e
-  $logger.error e.message
+  $logger.error "#{e.message}\n#{e.backtrace}"
   nil
 end
 
